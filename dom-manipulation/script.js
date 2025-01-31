@@ -1,12 +1,18 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const quotes = [
+  const quoteDisplay = document.getElementById("quoteDisplay");
+  const newQuoteButton = document.getElementById("newQuote");
+  const exportBtn = document.getElementById("exportBtn");
+  const importFileInput = document.getElementById("importFile");
+
+  let quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
     { text: "Do what you can, with what you have, where you are.", category: "Inspiration" },
     { text: "Happiness depends upon ourselves.", category: "Happiness" }
   ];
 
-  const quoteDisplay = document.getElementById("quoteDisplay");
-  const newQuoteButton = document.getElementById("newQuote");
+  function saveQuotes() {
+    localStorage.setItem("quotes", JSON.stringify(quotes));
+  }
 
   function showRandomQuote() {
     if (quotes.length === 0) {
@@ -15,34 +21,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     const randomIndex = Math.floor(Math.random() * quotes.length);
     const randomQuote = quotes[randomIndex];
+
     quoteDisplay.innerHTML = `<p>\"${randomQuote.text}\"</p><strong>- ${randomQuote.category}</strong>`;
-  }
-
-  newQuoteButton.addEventListener("click", showRandomQuote);
-
-  function createAddQuoteForm() {
-    const formContainer = document.createElement("div");
-
-    const inputQuote = document.createElement("input");
-    inputQuote.id = "newQuoteText";
-    inputQuote.type = "text";
-    inputQuote.placeholder = "Enter a new quote";
-
-    const inputCategory = document.createElement("input");
-    inputCategory.id = "newQuoteCategory";
-    inputCategory.type = "text";
-    inputCategory.placeholder = "Enter quote category";
-
-    const addQuoteButton = document.createElement("button");
-    addQuoteButton.id = "addQuoteBtn";
-    addQuoteButton.textContent = "Add Quote";
-    addQuoteButton.addEventListener("click", addQuote);
-
-    formContainer.appendChild(inputQuote);
-    formContainer.appendChild(inputCategory);
-    formContainer.appendChild(addQuoteButton);
-
-    document.body.appendChild(formContainer);
+    
+    sessionStorage.setItem("lastQuote", JSON.stringify(randomQuote)); // Store last viewed quote
   }
 
   function addQuote() {
@@ -58,11 +40,54 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     quotes.push({ text: quoteText, category: quoteCategory });
+    saveQuotes();
     inputQuote.value = "";
     inputCategory.value = "";
     alert("Quote added successfully!");
   }
 
-  createAddQuoteForm();
+  function exportToJson() {
+    const dataStr = JSON.stringify(quotes, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "quotes.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importFromJsonFile(event) {
+    const fileReader = new FileReader();
+    fileReader.onload = function (event) {
+      try {
+        const importedQuotes = JSON.parse(event.target.result);
+        if (Array.isArray(importedQuotes)) {
+          quotes.push(...importedQuotes);
+          saveQuotes();
+          alert("Quotes imported successfully!");
+        } else {
+          alert("Invalid file format!");
+        }
+      } catch (error) {
+        alert("Error reading file!");
+      }
+    };
+    fileReader.readAsText(event.target.files[0]);
+  }
+
+  function loadLastViewedQuote() {
+    const lastQuote = JSON.parse(sessionStorage.getItem("lastQuote"));
+    if (lastQuote) {
+      quoteDisplay.innerHTML = `<p>\"${lastQuote.text}\"</p><strong>- ${lastQuote.category}</strong>`;
+    }
+  }
+
+  newQuoteButton.addEventListener("click", showRandomQuote);
+  exportBtn.addEventListener("click", exportToJson);
+  importFileInput.addEventListener("change", importFromJsonFile);
+
+  loadLastViewedQuote();
   showRandomQuote();
 });

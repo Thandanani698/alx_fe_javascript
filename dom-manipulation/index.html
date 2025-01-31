@@ -4,20 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Quote Generator</title>
-    <link rel="stylesheet" href="styles.css">  <!-- Link to the CSS file -->
 </head>
 <body>
     <h1>Dynamic Quote Generator</h1>
+
+    <!-- Quote Display -->
     <div id="quoteDisplay"></div>
     <button id="newQuote">Show New Quote</button>
 
-    <!-- Form for adding new quotes -->
+    <!-- Form to Add New Quotes -->
     <div>
         <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
         <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
-        <button id="addQuoteBtn">Add Quote</button>
+        <button onclick="addQuote()">Add Quote</button>
     </div>
 
-    <script src="script.js"></script>  <!-- JavaScript file -->
+    <!-- Export & Import JSON -->
+    <div>
+        <button id="exportBtn">Export Quotes (JSON)</button>
+        <input type="file" id="importFile" accept=".json" />
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
