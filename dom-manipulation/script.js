@@ -1,4 +1,4 @@
-const API_URL = "https://jsonplaceholder.typicode.com/posts"; // Simulated API for server sync
+const API_URL = "https://jsonplaceholder.typicode.com/posts"; // Simulated API endpoint
 
 let quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
@@ -9,37 +9,6 @@ let quotes = JSON.parse(localStorage.getItem("quotes")) || [
 // Save quotes to local storage
 function saveQuotes() {
     localStorage.setItem("quotes", JSON.stringify(quotes));
-}
-
-// Fetch quotes from server (Simulated)
-async function fetchQuotesFromServer() {
-    try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-
-        if (data && Array.isArray(data)) {
-            quotes = [...new Map([...data, ...quotes].map(q => [q.text, q])).values()]; // Merge without duplicates
-            saveQuotes();
-            updateQuoteDisplay();
-            showNotification("Quotes updated from server!");
-        }
-    } catch (error) {
-        console.error("Error fetching quotes:", error);
-    }
-}
-
-// Send a new quote to the server (Simulated)
-async function sendQuoteToServer(quote) {
-    try {
-        await fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify(quote),
-            headers: { "Content-Type": "application/json" }
-        });
-        console.log("Quote saved to server:", quote);
-    } catch (error) {
-        console.error("Error sending quote:", error);
-    }
 }
 
 // Display a random quote
@@ -64,6 +33,7 @@ function addQuote() {
         sendQuoteToServer(newQuote);
         updateQuoteDisplay();
         populateCategories();
+        showNotification("Quote added successfully!");
 
         document.getElementById("newQuoteText").value = "";
         document.getElementById("newQuoteCategory").value = "";
@@ -91,8 +61,7 @@ function filterQuotes() {
         ? quotes
         : quotes.filter(q => q.category === selectedCategory);
 
-    const quoteDisplay = document.getElementById("quoteDisplay");
-    quoteDisplay.innerHTML = filteredQuotes.map(q => `<p>"${q.text}"</p><small>— ${q.category}</small>`).join("");
+    document.getElementById("quoteDisplay").innerHTML = filteredQuotes.map(q => `<p>"${q.text}"</p><small>— ${q.category}</small>`).join("");
 }
 
 // Export quotes as JSON
@@ -136,12 +105,49 @@ function showNotification(message) {
     notification.style.color = "white";
     notification.style.borderRadius = "5px";
     document.body.appendChild(notification);
-    
+
     setTimeout(() => notification.remove(), 3000);
 }
 
-// Auto-sync with server every 30 seconds
-setInterval(fetchQuotesFromServer, 30000);
+// Sync quotes with server (periodic updates & conflict resolution)
+async function syncQuotes() {
+    try {
+        const response = await fetch(API_URL);
+        const serverQuotes = await response.json();
+
+        if (serverQuotes && Array.isArray(serverQuotes)) {
+            let mergedQuotes = [...new Map([...serverQuotes, ...quotes].map(q => [q.text, q])).values()];
+
+            // Check for differences
+            if (JSON.stringify(mergedQuotes) !== JSON.stringify(quotes)) {
+                showNotification("New quotes have been synced from the server!");
+                quotes = mergedQuotes;
+                saveQuotes();
+                updateQuoteDisplay();
+                populateCategories();
+            }
+        }
+    } catch (error) {
+        console.error("Error syncing quotes:", error);
+    }
+}
+
+// Send a new quote to the server (Simulated)
+async function sendQuoteToServer(quote) {
+    try {
+        await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify(quote),
+            headers: { "Content-Type": "application/json" }
+        });
+        console.log("Quote saved to server:", quote);
+    } catch (error) {
+        console.error("Error sending quote:", error);
+    }
+}
+
+// Periodically sync every 30 seconds
+setInterval(syncQuotes, 30000);
 
 // Event Listeners
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
@@ -150,5 +156,5 @@ document.getElementById("importFile").addEventListener("change", importFromJsonF
 
 // Initial setup
 populateCategories();
-updateQuoteDisplay();
 showRandomQuote();
+syncQuotes();
