@@ -33,7 +33,7 @@ async function addQuote() {
         await postQuoteToServer(newQuote);
         updateQuoteDisplay();
         populateCategories();
-        showNotification("Quote added successfully!");
+        alert("Quote added successfully!"); // Alert notification
 
         document.getElementById("newQuoteText").value = "";
         document.getElementById("newQuoteCategory").value = "";
@@ -55,11 +55,11 @@ async function fetchQuotesFromServer() {
             let mergedQuotes = [...new Map([...formattedQuotes, ...quotes].map(q => [q.text, q])).values()];
 
             if (JSON.stringify(mergedQuotes) !== JSON.stringify(quotes)) {
-                showNotification("New quotes fetched from server!");
                 quotes = mergedQuotes;
                 saveQuotes();
                 updateQuoteDisplay();
                 populateCategories();
+                alert("Quotes synced with server!"); // Alert for sync notification
             }
         }
     } catch (error) {
@@ -110,22 +110,6 @@ function filterQuotes() {
     document.getElementById("quoteDisplay").innerHTML = filteredQuotes.map(q => `<p>"${q.text}"</p><small>— ${q.category}</small>`).join("");
 }
 
-// Show notifications
-function showNotification(message) {
-    const notification = document.createElement("div");
-    notification.innerText = message;
-    notification.style.position = "fixed";
-    notification.style.top = "10px";
-    notification.style.right = "10px";
-    notification.style.padding = "10px";
-    notification.style.backgroundColor = "green";
-    notification.style.color = "white";
-    notification.style.borderRadius = "5px";
-    document.body.appendChild(notification);
-
-    setTimeout(() => notification.remove(), 3000);
-}
-
 // Export quotes as JSON
 function exportQuotes() {
     const blob = new Blob([JSON.stringify(quotes, null, 2)], { type: "application/json" });
@@ -147,7 +131,7 @@ function importFromJsonFile(event) {
             saveQuotes();
             updateQuoteDisplay();
             populateCategories();
-            showNotification("Quotes imported successfully!");
+            alert("Quotes imported successfully!"); // Alert for import notification
         } catch (error) {
             console.error("Error importing JSON:", error);
         }
