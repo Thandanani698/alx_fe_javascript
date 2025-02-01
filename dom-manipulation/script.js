@@ -1,4 +1,4 @@
-const API_URL = "https://jsonplaceholder.typicode.com/posts"; // Simulated API endpoint
+const API_URL = "https://jsonplaceholder.typicode.com/posts"; // Mock API
 
 let quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
@@ -22,7 +22,7 @@ function showRandomQuote() {
 }
 
 // Add a new quote
-function addQuote() {
+async function addQuote() {
     const text = document.getElementById("newQuoteText").value.trim();
     const category = document.getElementById("newQuoteCategory").value.trim();
 
@@ -30,7 +30,7 @@ function addQuote() {
         const newQuote = { text, category };
         quotes.push(newQuote);
         saveQuotes();
-        sendQuoteToServer(newQuote);
+        await postQuoteToServer(newQuote);
         updateQuoteDisplay();
         populateCategories();
         showNotification("Quote added successfully!");
@@ -38,6 +38,52 @@ function addQuote() {
         document.getElementById("newQuoteText").value = "";
         document.getElementById("newQuoteCategory").value = "";
     }
+}
+
+// Fetch quotes from mock API
+async function fetchQuotesFromServer() {
+    try {
+        const response = await fetch(API_URL);
+        const serverQuotes = await response.json();
+
+        if (serverQuotes && Array.isArray(serverQuotes)) {
+            const formattedQuotes = serverQuotes.slice(0, 5).map(q => ({
+                text: q.title,
+                category: "General"
+            }));
+
+            let mergedQuotes = [...new Map([...formattedQuotes, ...quotes].map(q => [q.text, q])).values()];
+
+            if (JSON.stringify(mergedQuotes) !== JSON.stringify(quotes)) {
+                showNotification("New quotes fetched from server!");
+                quotes = mergedQuotes;
+                saveQuotes();
+                updateQuoteDisplay();
+                populateCategories();
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching quotes:", error);
+    }
+}
+
+// Post new quote to server
+async function postQuoteToServer(quote) {
+    try {
+        await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify(quote),
+            headers: { "Content-Type": "application/json" }
+        });
+        console.log("Quote saved to server:", quote);
+    } catch (error) {
+        console.error("Error posting quote:", error);
+    }
+}
+
+// Sync quotes periodically
+function syncQuotes() {
+    fetchQuotesFromServer();
 }
 
 // Populate category dropdown
@@ -62,6 +108,22 @@ function filterQuotes() {
         : quotes.filter(q => q.category === selectedCategory);
 
     document.getElementById("quoteDisplay").innerHTML = filteredQuotes.map(q => `<p>"${q.text}"</p><small>— ${q.category}</small>`).join("");
+}
+
+// Show notifications
+function showNotification(message) {
+    const notification = document.createElement("div");
+    notification.innerText = message;
+    notification.style.position = "fixed";
+    notification.style.top = "10px";
+    notification.style.right = "10px";
+    notification.style.padding = "10px";
+    notification.style.backgroundColor = "green";
+    notification.style.color = "white";
+    notification.style.borderRadius = "5px";
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.remove(), 3000);
 }
 
 // Export quotes as JSON
@@ -93,60 +155,7 @@ function importFromJsonFile(event) {
     fileReader.readAsText(event.target.files[0]);
 }
 
-// Show notifications
-function showNotification(message) {
-    const notification = document.createElement("div");
-    notification.innerText = message;
-    notification.style.position = "fixed";
-    notification.style.top = "10px";
-    notification.style.right = "10px";
-    notification.style.padding = "10px";
-    notification.style.backgroundColor = "green";
-    notification.style.color = "white";
-    notification.style.borderRadius = "5px";
-    document.body.appendChild(notification);
-
-    setTimeout(() => notification.remove(), 3000);
-}
-
-// Sync quotes with server (periodic updates & conflict resolution)
-async function syncQuotes() {
-    try {
-        const response = await fetch(API_URL);
-        const serverQuotes = await response.json();
-
-        if (serverQuotes && Array.isArray(serverQuotes)) {
-            let mergedQuotes = [...new Map([...serverQuotes, ...quotes].map(q => [q.text, q])).values()];
-
-            // Check for differences
-            if (JSON.stringify(mergedQuotes) !== JSON.stringify(quotes)) {
-                showNotification("New quotes have been synced from the server!");
-                quotes = mergedQuotes;
-                saveQuotes();
-                updateQuoteDisplay();
-                populateCategories();
-            }
-        }
-    } catch (error) {
-        console.error("Error syncing quotes:", error);
-    }
-}
-
-// Send a new quote to the server (Simulated)
-async function sendQuoteToServer(quote) {
-    try {
-        await fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify(quote),
-            headers: { "Content-Type": "application/json" }
-        });
-        console.log("Quote saved to server:", quote);
-    } catch (error) {
-        console.error("Error sending quote:", error);
-    }
-}
-
-// Periodically sync every 30 seconds
+// Periodic Sync
 setInterval(syncQuotes, 30000);
 
 // Event Listeners
