@@ -1,47 +1,60 @@
-body {
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Container Styling */
+.container {
+    width: 80%;
+    margin: 0 auto;
     font-family: Arial, sans-serif;
     text-align: center;
-    background-color: #f4f4f4;
-    padding: 20px;
 }
 
+/* Heading Styling */
 h1 {
     color: #333;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
 }
 
-#quoteDisplay {
-    font-size: 1.5em;
-    margin: 20px auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 50%;
-}
-
-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 1em;
-    cursor: pointer;
-    border-radius: 5px;
-    margin: 10px;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-input {
+/* Dropdown Styling */
+select {
     padding: 10px;
-    font-size: 1em;
-    margin: 5px;
+    font-size: 1rem;
+    margin-bottom: 20px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 4px;
 }
 
-div {
+/* Quote Display Styling */
+.quote-container {
     margin-top: 20px;
+}
+
+.quote-container p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #555;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    margin: 10px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+    }
+    h1 {
+        font-size: 2rem;
+    }
+    select {
+        width: 100%;
+        font-size: 1rem;
+    }
 }

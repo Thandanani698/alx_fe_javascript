@@ -1,82 +1,21 @@
-// script.js
+// Sample Quotes Data
+const quotes = [
+    { text: "The best way to predict the future is to create it.", category: "Inspirational" },
+    { text: "I used to think I was indecisive, but now I'm not so sure.", category: "Funny" },
+    { text: "Don't watch the clock; do what it does. Keep going.", category: "Motivational" },
+    { text: "The only way to do great work is to love what you do.", category: "Inspirational" },
+    { text: "I'm writing a book. I've got the page numbers done.", category: "Funny" },
+    { text: "Believe you can and you're halfway there.", category: "Motivational" }
+];
 
-// Load quotes from localStorage or initialize an empty array
-let quotes = JSON.parse(localStorage.getItem("quotes")) || [];
-let lastViewedQuote = sessionStorage.getItem("lastViewedQuote") || "";
-let lastSelectedCategory = localStorage.getItem("lastSelectedCategory") || "all";
-
-document.addEventListener("DOMContentLoaded", function () {
-    loadQuotes();
-    populateCategories();
-    if (lastViewedQuote) {
-        document.getElementById("quoteDisplay").textContent = lastViewedQuote;
-    }
-    document.getElementById("categoryFilter").value = lastSelectedCategory;
-    filterQuotes();
-});
-
-function addQuote() {
-    const quoteInput = document.getElementById("quoteInput").value.trim();
-    const categoryInput = document.getElementById("categoryInput").value.trim();
-    if (quoteInput && categoryInput) {
-        quotes.push({ text: quoteInput, category: categoryInput });
-        saveQuotes();
-        displayQuote(quoteInput, categoryInput);
-        document.getElementById("quoteInput").value = "";
-        document.getElementById("categoryInput").value = "";
-        populateCategories();
-    }
-}
-
-function saveQuotes() {
-    localStorage.setItem("quotes", JSON.stringify(quotes));
-}
-
-function loadQuotes() {
-    filterQuotes();
-}
-
-function displayQuote(quote, category) {
-    document.getElementById("quoteDisplay").textContent = `${quote} (${category})`;
-    sessionStorage.setItem("lastViewedQuote", `${quote} (${category})`);
-}
-
-function exportToJsonFile() {
-    const blob = new Blob([JSON.stringify(quotes, null, 2)], { type: "application/json" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "quotes.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function importFromJsonFile(event) {
-    const fileReader = new FileReader();
-    fileReader.onload = function(event) {
-        try {
-            const importedQuotes = JSON.parse(event.target.result);
-            if (Array.isArray(importedQuotes)) {
-                quotes.push(...importedQuotes);
-                saveQuotes();
-                loadQuotes();
-                populateCategories();
-                alert("Quotes imported successfully!");
-            } else {
-                alert("Invalid JSON format");
-            }
-        } catch (error) {
-            alert("Error parsing JSON file");
-        }
-    };
-    fileReader.readAsText(event.target.files[0]);
-}
-
+// Function to populate categories dynamically
 function populateCategories() {
     const categoryFilter = document.getElementById("categoryFilter");
-    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
-    const uniqueCategories = [...new Set(quotes.map(q => q.category))];
-    uniqueCategories.forEach(category => {
+    const categories = new Set(["all"]); // Start with the "all" category
+    
+    quotes.forEach(quote => categories.add(quote.category));
+
+    categories.forEach(category => {
         const option = document.createElement("option");
         option.value = category;
         option.textContent = category;
@@ -84,22 +23,47 @@ function populateCategories() {
     });
 }
 
+// Function to filter quotes based on the selected category
 function filterQuotes() {
     const selectedCategory = document.getElementById("categoryFilter").value;
-    localStorage.setItem("lastSelectedCategory", selectedCategory);
-    const filteredQuotes = selectedCategory === "all" ? quotes : quotes.filter(q => q.category === selectedCategory);
+    const filteredQuotes = selectedCategory === "all" 
+        ? quotes 
+        : quotes.filter(quote => quote.category === selectedCategory);
     
-    const quotesList = document.getElementById("quotesList");
-    quotesList.innerHTML = "";
-    filteredQuotes.forEach((quote) => {
-        let li = document.createElement("li");
-        li.textContent = `${quote.text} (${quote.category})`;
-        li.onclick = () => displayQuote(quote.text, quote.category);
-        quotesList.appendChild(li);
+    displayQuotes(filteredQuotes);
+    saveCategoryToLocalStorage(selectedCategory);
+}
+
+// Function to display quotes
+function displayQuotes(quotesToDisplay) {
+    const quoteDisplay = document.getElementById("quoteDisplay");
+    quoteDisplay.innerHTML = ""; // Clear the current quotes
+    
+    quotesToDisplay.forEach(quote => {
+        const quoteElement = document.createElement("p");
+        quoteElement.textContent = quote.text;
+        quoteDisplay.appendChild(quoteElement);
     });
 }
 
-// Attach event listeners
-document.getElementById("exportButton").addEventListener("click", exportToJsonFile);
-document.getElementById("importFile").addEventListener("change", importFromJsonFile);
-document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
+// Function to save the selected category to local storage
+function saveCategoryToLocalStorage(category) {
+    localStorage.setItem("selectedCategory", category);
+}
+
+// Function to restore the last selected category from local storage
+function restoreCategoryFromLocalStorage() {
+    const savedCategory = localStorage.getItem("selectedCategory");
+    if (savedCategory) {
+        document.getElementById("categoryFilter").value = savedCategory;
+        filterQuotes(); // Filter quotes based on the saved category
+    } else {
+        filterQuotes(); // Default filter for "all"
+    }
+}
+
+// Run the following on page load
+window.addEventListener("load", () => {
+    populateCategories();
+    restoreCategoryFromLocalStorage();
+});
