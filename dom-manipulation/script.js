@@ -13,8 +13,14 @@ function populateCategories() {
     const categoryFilter = document.getElementById("categoryFilter");
     const categories = new Set(["all"]); // Start with the "all" category
     
-    quotes.forEach(quote => categories.add(quote.category));
+    quotes.forEach(quote => {
+        categories.add(quote.category); // Extract unique categories
+    });
 
+    // Clear existing options in the dropdown before adding new ones
+    categoryFilter.innerHTML = "<option value='all'>All Categories</option>";
+
+    // Add unique categories to the dropdown
     categories.forEach(category => {
         const option = document.createElement("option");
         option.value = category;
@@ -26,12 +32,14 @@ function populateCategories() {
 // Function to filter quotes based on the selected category
 function filterQuotes() {
     const selectedCategory = document.getElementById("categoryFilter").value;
+    
+    // Filter quotes based on the selected category
     const filteredQuotes = selectedCategory === "all" 
         ? quotes 
         : quotes.filter(quote => quote.category === selectedCategory);
-    
-    displayQuotes(filteredQuotes);
-    saveCategoryToLocalStorage(selectedCategory);
+
+    displayQuotes(filteredQuotes); // Display filtered quotes
+    saveCategoryToLocalStorage(selectedCategory); // Save selected category to localStorage
 }
 
 // Function to display quotes
@@ -48,17 +56,20 @@ function displayQuotes(quotesToDisplay) {
 
 // Function to save the selected category to local storage
 function saveCategoryToLocalStorage(category) {
-    localStorage.setItem("selectedCategory", category);
+    localStorage.setItem("selectedCategory", category); // Save category to local storage
 }
 
 // Function to restore the last selected category from local storage
 function restoreCategoryFromLocalStorage() {
     const savedCategory = localStorage.getItem("selectedCategory");
+
     if (savedCategory) {
+        // If a saved category exists, set the dropdown value and filter quotes
         document.getElementById("categoryFilter").value = savedCategory;
         filterQuotes(); // Filter quotes based on the saved category
     } else {
-        filterQuotes(); // Default filter for "all"
+        // Default to filtering all quotes
+        filterQuotes();
     }
 }
 
