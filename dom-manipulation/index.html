@@ -4,23 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Quote Generator</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to the CSS file -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        select {
+            padding: 8px;
+            font-size: 16px;
+        }
+        #quoteContainer {
+            margin-top: 20px;
+        }
+        p {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            width: 50%;
+            margin: 10px auto;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Quote Generator</h1>
-        <!-- Dropdown for category filter -->
-        <label for="categoryFilter">Select Category:</label>
-        <select id="categoryFilter" onchange="filterQuotes()">
-            <option value="all">All Categories</option>
-            <!-- Categories will be dynamically populated here -->
-        </select>
 
-        <div id="quoteDisplay" class="quote-container">
-            <!-- Quotes will be dynamically displayed here -->
-        </div>
-    </div>
+    <h1>Dynamic Quote Generator</h1>
+    
+    <!-- Category Filter Dropdown -->
+    <label for="categoryFilter">Select Category:</label>
+    <select id="categoryFilter" onchange="filterQuotes()">
+        <option value="all">All Categories</option>
+    </select>
 
-    <script src="script.js"></script>
+    <!-- Quote Display Area -->
+    <div id="quoteContainer"></div>
+
+    <script>
+        // Sample quotes array with categories
+        const quotes = [
+            { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
+            { text: "Do what you can, with what you have, where you are.", category: "Inspiration" },
+            { text: "Success is not the key to happiness. Happiness is the key to success.", category: "Success" },
+            { text: "Act as if what you do makes a difference. It does.", category: "Motivation" },
+            { text: "Believe you can and you're halfway there.", category: "Inspiration" }
+        ];
+
+        // ** Populate Categories in Dropdown **
+        function populateCategories() {
+            const categoryFilter = document.getElementById("categoryFilter");
+            categoryFilter.innerHTML = '<option value="all">All Categories</option>'; // Reset options
+
+            // Extract unique categories
+            const categories = [...new Set(quotes.map(quote => quote.category))];
+
+            // Populate dropdown with unique categories
+            categories.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
+
+            // Restore last selected category
+            const lastSelectedCategory = localStorage.getItem("selectedCategory");
+            if (lastSelectedCategory) {
+                categoryFilter.value = lastSelectedCategory;
+            }
+
+            filterQuotes();
+        }
+
+        // ** Filter Quotes Based on Selected Category **
+        function filterQuotes() {
+            const selectedCategory = document.getElementById("categoryFilter").value;
+            localStorage.setItem("selectedCategory", selectedCategory); // Save to local storage
+
+            const quoteContainer = document.getElementById("quoteContainer");
+            quoteContainer.innerHTML = ""; // Clear existing quotes
+
+            // Filter and display quotes
+            const filteredQuotes = selectedCategory === "all"
+                ? quotes
+                : quotes.filter(quote => quote.category === selectedCategory);
+
+            filteredQuotes.forEach(quote => {
+                const quoteElement = document.createElement("p");
+                quoteElement.textContent = quote.text;
+                quoteContainer.appendChild(quoteElement);
+            });
+        }
+
+        // ** Call populateCategories when the page loads **
+        document.addEventListener("DOMContentLoaded", () => {
+            populateCategories();
+        });
+
+    </script>
+
 </body>
 </html>
